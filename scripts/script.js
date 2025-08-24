@@ -23,20 +23,32 @@ const API_KEY = "live_DMfHxeqgJLHsyBt03zvFBxYuyAFoDq4PcLUWvTBbef3EjxOdJNHeWdx1vW
  */
 async function initialLoad() {
     try {
-        // Fetch the list of breeds from The Cat API
         const response = await fetch("https://api.thecatapi.com/v1/breeds?limit=10&page=0", {
             headers: {
                 "x-api-key": API_KEY
             }
-        })
-    } 
+        });
+
+        const breeds = await response.json();
+
+        for (let i = 0; i < breeds.length; i++) {
+            const breed = breeds[i];
+
+
+            const option = document.createElement("option");
+            option.value = breed.id;
+            option.textContent = breed.name;
+
+            breedSelect.appendChild(option);
+        }
+    } catch (error) {
+        console.error("Error loading breeds:", error);
+    }
 }
 
-const breeds = await response.json();
+initialLoad();
 
-for (let i = 0; i < breeds.length; i++) {
-    const breed = breeds[i];
-}
+
 /**
  * 2. Create an event handler for breedSelect that does the following:
  * - Retrieve information on the selected breed from the cat API using fetch().
