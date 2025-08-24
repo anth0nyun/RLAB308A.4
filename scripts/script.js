@@ -63,6 +63,21 @@ initialLoad();
  * - Each new selection should clear, re-populate, and restart the Carousel.
  * - Add a call to this function to the end of your initialLoad function above to create the initial carousel.
  */
+async function breedImages(breedId) {
+    const response = await fetch("https://api.thecatapi.com/v1/breeds/:breed_id", {
+        headers: {
+            "x-api-key": API_KEY
+        }
+    });
+
+    const data = await res.json();
+    if (!Array.isArray(data)) {
+
+        throw new Error("Data Not Fetched");
+    }
+    return data;
+}
+
 
 /**
  * 3. Fork your own sandbox, creating a new one named "JavaScript Axios Lab."
