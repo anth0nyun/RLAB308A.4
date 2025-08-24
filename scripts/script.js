@@ -21,7 +21,22 @@ const API_KEY = "live_DMfHxeqgJLHsyBt03zvFBxYuyAFoDq4PcLUWvTBbef3EjxOdJNHeWdx1vW
  *  - Each option should display text equal to the name of the breed.
  * This function should execute immediately.
  */
+async function initialLoad() {
+    try {
+        // Fetch the list of breeds from The Cat API
+        const response = await fetch("https://api.thecatapi.com/v1/breeds?limit=10&page=0", {
+            headers: {
+                "x-api-key": API_KEY
+            }
+        })
+    } 
+}
 
+const breeds = await response.json();
+
+for (let i = 0; i < breeds.length; i++) {
+    const breed = breeds[i];
+}
 /**
  * 2. Create an event handler for breedSelect that does the following:
  * - Retrieve information on the selected breed from the cat API using fetch().
@@ -89,7 +104,9 @@ const API_KEY = "live_DMfHxeqgJLHsyBt03zvFBxYuyAFoDq4PcLUWvTBbef3EjxOdJNHeWdx1vW
  * - You can call this function by clicking on the heart at the top right of any image.
  */
 export async function favourite(imgId) {
-  // your code here
+    // your code here
+
+
 }
 
 /**
