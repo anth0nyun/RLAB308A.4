@@ -21,6 +21,8 @@ const API_KEY = "live_DMfHxeqgJLHsyBt03zvFBxYuyAFoDq4PcLUWvTBbef3EjxOdJNHeWdx1vW
  *  - Each option should display text equal to the name of the breed.
  * This function should execute immediately.
  */
+let allBreeds = [];
+
 async function initialLoad() {
     try {
         const response = await fetch("https://api.thecatapi.com/v1/breeds?limit=10&page=0", {
@@ -28,21 +30,29 @@ async function initialLoad() {
                 "x-api-key": API_KEY
             }
         });
-
+        if (!response.ok) throw new Error("Failed to load breeds");
         const breeds = await response.json();
 
-        for (let i = 0; i < breeds.length; i++) {
-            const breed = breeds[i];
+        allBreeds = breeds.slice();
 
+        breedSelect.innerHTML = "";
+        const placeholder = document.createElement("option");
+        breedSelect.appendChild(placeholder);
 
-            const option = document.createElement("option");
-            option.value = breed.id;
-            option.textContent = breed.name;
-
-            breedSelect.appendChild(option);
+        for (let i = 0; i < allBreeds.length; i++) {
+            const b = allBreeds[i];
+            const opt = document.createElement("option");
+            opt.value = b.id;
+            opt.textContent = b.name;
+            breedSelect.appendChild(opt);
         }
-    } catch (error) {
-        console.error("Error loading breeds:", error);
+        if (allBreeds.length > 0) {
+            breedSelect.value = allBreeds[0].id;
+            await buildBreedUI(allBreeds[0].id);
+        }
+    } catch (err) {
+        console.error("Error loading breeds:", err);
+        infoDump.textContent = "Couldn't load breed list.";
     }
 }
 
@@ -64,24 +74,31 @@ initialLoad();
  * - Add a call to this function to the end of your initialLoad function above to create the initial carousel.
  */
 
-let allBreeds = [];
+async function fetchBreedImages(breedId, limit = 10) {
+    try {
+        const response = await fetch("https://api.thecatapi.com/v1/breeds/2", {
+            headers: {
+                "x-api-key": API_KEY
+            }
+        });
 
-async function breedImages(breedId) {
-    const response = await fetch("https://api.thecatapi.com/v1/breeds/:breed_id", {
-        headers: {
-            "x-api-key": API_KEY
+        if (!res.ok) {
+            throw new Error("Failed to load breed images");
         }
-    });
 
-    if (!res.ok) throw new err("Error while fetching images");
-    const data = await res.json();
+        const data = await res.json();
+        if (!Array.isArray(data)) {
+            throw new Error("Unexpected image response");
+        }
 
-    if (!Array.isArray(data)) {
-
-        throw new Error("Data not fetched");
+        return data;
+    } catch (error) {
+        console.error("Error fetching breed images:", error);
+        throw error;
     }
-    return data;
 }
+
+////////////////////////////////////
 
 function renderCarousel(images) {
     const carousel = document.getElementById("carousel");
@@ -98,105 +115,115 @@ function renderCarousel(images) {
     }
 }
 
+// Restart carousel
+if (Carousel && typeof Carousel.restart === "function") {
+    Carousel.restart();
+} else if (Carousel && typeof Carousel.init === "function") {
+    Carousel.init();
+}
+
 function renderInfo(breedId) {
     infoDump.innerHTML = "";
 
-    const b = allBreeds.find(x => x.id === breedId);
-    if (!b) {
+
+    let breed = null;
+    for (let i = 0; i < allBreeds.length; i++) {
+        if (allBreeds[i].id === breedId) {
+            breed = allBreeds[i];
+            break;
+        }
+    }
+    if (!breed) {
         infoDump.textContent = "No breed details available.";
         return;
     }
+}
 
-    const card = document.createElement("article");
-    card.className = "breed-card";
+const card = document.createElement("article");
+card.className = "breed-card";
+infoDump.appendChild(card);
 
-    infoDump.appendChild(card);
 
-    
-    async function buildBreedUI(breedId) {
-        try {
-            const images = await fetchBreedImages(breedId);
-            renderCarousel(images);
-            renderInfo(breedId);
-        } catch (err) {
-            console.error("Failed to load breed:", err);
-            carousel.innerHTML = "";
-            infoDump.textContent = "Sorry, we couldn't load this breed right now.";
-        }
+async function buildBreedUI(breedId) {
+    try {
+        const images = await fetchBreedImages(breedId);
+        renderCarousel(images);
+        renderInfo(breedId);
+    } catch (err) {
+        console.error("Failed to load breed:", err);
+        carousel.innerHTML = "";
+        infoDump.textContent = "Sorry, we couldn't load this breed right now.";
     }
+}
 
-    async function onBreedChange(e) {
-        const breedId = e.target.value;
-        if (!breedId) return;
+async function onBreedChange(e) {
+    const breedId = e.target.value;
+    if (!breedId) return;
 
-        try {
-            const images = await fetchBreedImages(breedId);
-            console.log("Fetched images:", images);
-        } catch (err) {
-            console.error("Failed to fetch breed info:", err);
-        }
-    }
+    document.getElementById("carousel").innerHTML = "";
+    infoDump.innerHTML = "";
 
-    breedSelect.addEventListener("change", onBreedChange);
+    await buildBreedUI(breedId);
+}
 
+breedSelect.addEventListener("change", onBreedChange);
 
+/**
+ * 3. Fork your own sandbox, creating a new one named "JavaScript Axios Lab."
+ */
+/**
+ * 4. Change all of your fetch() functions to axios!
+ * - axios has already been imported for you within index.js.
+ * - If you've done everything correctly up to this point, this should be simple.
+ * - If it is not simple, take a moment to re-evaluate your original code.
+ * - Hint: Axios has the ability to set default headers. Use this to your advantage
+ *   by setting a default header with your API key so that you do not have to
+ *   send it manually with all of your requests! You can also set a default base URL!
+ */
+/**
+ * 5. Add axios interceptors to log the time between request and response to the console.
+ * - Hint: you already have access to code that does this!
+ * - Add a console.log statement to indicate when requests begin.
+ * - As an added challenge, try to do this on your own without referencing the lesson material.
+ */
 
-    /**
-     * 3. Fork your own sandbox, creating a new one named "JavaScript Axios Lab."
-     */
-    /**
-     * 4. Change all of your fetch() functions to axios!
-     * - axios has already been imported for you within index.js.
-     * - If you've done everything correctly up to this point, this should be simple.
-     * - If it is not simple, take a moment to re-evaluate your original code.
-     * - Hint: Axios has the ability to set default headers. Use this to your advantage
-     *   by setting a default header with your API key so that you do not have to
-     *   send it manually with all of your requests! You can also set a default base URL!
-     */
-    /**
-     * 5. Add axios interceptors to log the time between request and response to the console.
-     * - Hint: you already have access to code that does this!
-     * - Add a console.log statement to indicate when requests begin.
-     * - As an added challenge, try to do this on your own without referencing the lesson material.
-     */
+/**
+ * 6. Next, we'll create a progress bar to indicate the request is in progress.
+ * - The progressBar element has already been created for you.
+ *  - You need only to modify its "width" style property to align with the request progress.
+ * - In your request interceptor, set the width of the progressBar element to 0%.
+ *  - This is to reset the progress with each request.
+ * - Research the axios onDownloadProgress config option.
+ * - Create a function "updateProgress" that receives a ProgressEvent object.
+ *  - Pass this function to the axios onDownloadProgress config option in your event handler.
+ * - console.log your ProgressEvent object within updateProgess, and familiarize yourself with its structure.
+ *  - Update the progress of the request using the properties you are given.
+ * - Note that we are not downloading a lot of data, so onDownloadProgress will likely only fire
+ *   once or twice per request to this API. This is still a concept worth familiarizing yourself
+ *   with for future projects.
+ */
 
-    /**
-     * 6. Next, we'll create a progress bar to indicate the request is in progress.
-     * - The progressBar element has already been created for you.
-     *  - You need only to modify its "width" style property to align with the request progress.
-     * - In your request interceptor, set the width of the progressBar element to 0%.
-     *  - This is to reset the progress with each request.
-     * - Research the axios onDownloadProgress config option.
-     * - Create a function "updateProgress" that receives a ProgressEvent object.
-     *  - Pass this function to the axios onDownloadProgress config option in your event handler.
-     * - console.log your ProgressEvent object within updateProgess, and familiarize yourself with its structure.
-     *  - Update the progress of the request using the properties you are given.
-     * - Note that we are not downloading a lot of data, so onDownloadProgress will likely only fire
-     *   once or twice per request to this API. This is still a concept worth familiarizing yourself
-     *   with for future projects.
-     */
-
-    /**
-     * 7. As a final element of progress indication, add the following to your axios interceptors:
-     * - In your request interceptor, set the body element's cursor style to "progress."
-     * - In your response interceptor, remove the progress cursor style from the body element.
-     */
-    /**
-     * 8. To practice posting data, we'll create a system to "favourite" certain images.
-     * - The skeleton of this function has already been created for you.
-     * - This function is used within Carousel.js to add the event listener as items are created.
-     *  - This is why we use the export keyword for this function.
-     * - Post to the cat API's favourites endpoint with the given ID.
-     * - The API documentation gives examples of this functionality using fetch(); use Axios!
-     * - Add additional logic to this function such that if the image is already favourited,
-     *   you delete that favourite using the API, giving this function "toggle" functionality.
-     * - You can call this function by clicking on the heart at the top right of any image.
-     */
-    export async function favourite(imgId) {
-        // your code here
+/**
+ * 7. As a final element of progress indication, add the following to your axios interceptors:
+ * - In your request interceptor, set the body element's cursor style to "progress."
+ * - In your response interceptor, remove the progress cursor style from the body element.
+ */
+/**
+ * 8. To practice posting data, we'll create a system to "favourite" certain images.
+ * - The skeleton of this function has already been created for you.
+ * - This function is used within Carousel.js to add the event listener as items are created.
+ *  - This is why we use the export keyword for this function.
+ * - Post to the cat API's favourites endpoint with the given ID.
+ * - The API documentation gives examples of this functionality using fetch(); use Axios!
+ * - Add additional logic to this function such that if the image is already favourited,
+ *   you delete that favourite using the API, giving this function "toggle" functionality.
+ * - You can call this function by clicking on the heart at the top right of any image.
+ */
+export async function favourite(imgId) {
+    // your code here
 
 
-    }
+}
 
 /**
  * 9. Test your favourite() function by creating a getFavourites() function.
