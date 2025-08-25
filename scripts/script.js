@@ -63,6 +63,9 @@ initialLoad();
  * - Each new selection should clear, re-populate, and restart the Carousel.
  * - Add a call to this function to the end of your initialLoad function above to create the initial carousel.
  */
+
+let allBreeds = [];
+
 async function breedImages(breedId) {
     const response = await fetch("https://api.thecatapi.com/v1/breeds/:breed_id", {
         headers: {
@@ -70,13 +73,46 @@ async function breedImages(breedId) {
         }
     });
 
+    if (!res.ok) throw new err("Error while fetching images");
     const data = await res.json();
+
     if (!Array.isArray(data)) {
 
-        throw new Error("Data Not Fetched");
+        throw new Error("Data not fetched");
     }
     return data;
 }
+
+function renderCarousel(images) {
+    const carousel = document.getElementById("carousel");
+    carousel.innerHTML = "";
+
+    for (let i = 0; i < images.length; i++) {
+        const item = document.createElement("div");
+        item.className = "carousel-item";
+
+        const img = document.createElement("img");
+
+        item.appendChild(img);
+        carousel.appendChild(item);
+    }
+}
+
+
+async function onBreedChange(e) {
+    const breedId = e.target.value;
+    if (!breedId) return;
+
+    try {
+        const images = await fetchBreedImages(breedId);
+        console.log("Fetched images:", images);
+    } catch (err) {
+        console.error("Failed to fetch breed info:", err);
+    }
+}
+
+breedSelect.addEventListener("change", onBreedChange);
+
 
 
 /**
